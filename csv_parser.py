@@ -1,14 +1,18 @@
-# Note: This file is hardcoded to scrape data from a singular CSV file (SEC_Jamboree_1_Womens_5000_Meters_Junior_Varsity_24.csv)
-# It displays the event title, top 3 team scores and top 3 individual performances in photobook style
-# Credit: ChatGPT, UM-GPT, Sample 339 Code
+
 import os
 
 # Path to the CSV file
 file_path = 'SEC_Jamboree_1_Womens_5000_Meters_Junior_Varsity_24.csv'
 
-# Reading the file manually as it contains inconsistent formatting
-with open(file_path, 'r') as file:
-    lines = file.readlines()
+if not os.path.exists(file_path):
+    raise FileNotFoundError(f"The file {file_path} does not exist.")
+    
+# Reading the file and handling potential format issues
+try:
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+except Exception as e:
+    raise IOError(f"Error reading the file: {e}")
 
 # Variables to store team scores and individual results
 team_scores = []
@@ -18,7 +22,7 @@ individual_results = []
 in_team_scores = False
 in_individual_results = False
 
-# Simple for loop to go through lines and capture data
+# For loop to capture data sections
 for line in lines:
     line = line.strip()
 
@@ -33,10 +37,25 @@ for line in lines:
     elif not line:  # Ignores the empty lines
         continue
 
+    data = line.split(',')
+
+    # Validate CSV structure for teams and individuals and limit to top 3 results
     if in_team_scores and len(team_scores) < 3:
-        team_scores.append(line.split(','))
+        if len(data) >= 3 and all(data[:3]):
+            team_scores.append(data[:3])
+        else:
+            print(f"Warning: Incorrect or incomplete team score data: {line}")
     elif in_individual_results and len(individual_results) < 3:
-        individual_results.append(line.split(','))
+        if len(data) >= 8 and all(data[:8]):
+            individual_results.append(data[:8])
+        else:
+            print(f"Warning: Incorrect or incomplete individual result data: {line}")
+
+# Report any issues if less than 3 entries are found
+if len(team_scores) < 3:
+    print("Warning: Less than 3 valid team scores found.")
+if len(individual_results) < 3:
+    print("Warning: Less than 3 valid individual results found.")
 
 # HTML content to be constructed directly
 html_content = """
@@ -66,6 +85,7 @@ html_content = """
             padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -99,7 +119,7 @@ html_content = """
                 <tbody>
 """
 
-# Adds team scores to the HTML content
+# Adds top 3 team scores to the HTML content
 for score in team_scores:
     if len(score) >= 3:
         html_content += f"""
@@ -119,7 +139,7 @@ html_content += """
             <h2>Top 3 Results</h2>
 """
 
-# Creates the HTML content for athletes
+# Creates the HTML content for top 3 individual athletes
 for result in individual_results:
     if len(result) >= 7:  # Making sure all required data is present!!
         athlete_link = result[3]
@@ -152,7 +172,9 @@ html_content += """
 
 # Save the HTML content to a file
 html_file_path = 'results.html'
-with open(html_file_path, 'w') as file:
-    file.write(html_content)
-
-print(f'HTML file generated: {html_file_path}')
+try:
+    with open(html_file_path, 'w') as file:
+        file.write(html_content)
+    print(f'HTML file generated: {html_file_path}')
+except Exception as e:
+    raise IOError(f"Error writing to the file: {e}")
