@@ -68,7 +68,7 @@ html_content = """
     <link rel="stylesheet" type="text/css" href="css/reset.css"> 
     <link rel="stylesheet" href="css/style.css">
     <title>Client Project - Results</title>
-    <style>
+    <!-- <style>
         table {
             width: 100%;
             border-collapse: collapse;
@@ -86,7 +86,7 @@ html_content = """
             margin-bottom: 20px;
             border: 1px solid #ddd;
         }
-    </style>
+    </style> -->
 </head>
 <body>
     <header id="main-header">
